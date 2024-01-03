@@ -2,14 +2,13 @@
 #define MOTION_REMOVAL_ROS_OPENCV_HPP
 
 
-#include <chrono>
-#include <functional>
-#include <memory>
-#include <string>
-
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
-#include <message_filters/time_synchronizer.h>
+#include <sensor_msgs/image_encodings.hpp>
+#include <message_filters/subscriber.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/sync_policies/exact_time.h>
+#include <message_filters/synchronizer.h>
 
 #include <opencv4/opencv2/core.hpp>
 #include <opencv4/opencv2/imgproc.hpp>
@@ -18,20 +17,28 @@
 
 class RosOpencv : public rclcpp::Node {
 private:
-    cv::Mat prev_rgb;
+    using approximate_policy = message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image>;
 
-    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr rgb_proc_publisher_;
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr rgb_subscription_;
-    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr depth_subscription_;
+    const bool is_bigendian = false;
 
-    // message_filters::TimeSynchronizer<sensor_msgs::msg::Image, 
+    message_filters::Subscriber<sensor_msgs::msg::Image> rgb_sub_;
+    message_filters::Subscriber<sensor_msgs::msg::Image> depth_sub_;
+
+    std::unique_ptr<message_filters::Synchronizer<approximate_policy>> sync_;
+
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr rgb_publisher_;
+    rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr depth_publisher_;
+
+    cv::Mat rosOpencvRgbConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb);
+    cv::Mat rosOpencvDepthConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_depth);
+
+    sensor_msgs::msg::Image::ConstSharedPtr opencvRosRgbConverter(cv::Mat rgb, const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb);
+    sensor_msgs::msg::Image::ConstSharedPtr opencvRosDepthConverter(cv::Mat depth, const sensor_msgs::msg::Image::ConstSharedPtr ros_depth);
 
 public:
     RosOpencv();
 
-private:
-    void rgbSubCallback(const sensor_msgs::msg::Image& msg);
-    void depthSubCallback(const sensor_msgs::msg::Image& msg);
+    void callback(const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb, const sensor_msgs::msg::Image::ConstSharedPtr ros_depth);
 };
 
 
