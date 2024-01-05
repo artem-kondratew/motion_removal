@@ -5,6 +5,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/image_encodings.hpp>
+#include <cv_bridge/cv_bridge.h>
+
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/sync_policies/exact_time.h>
@@ -29,14 +31,15 @@ private:
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr rgb_publisher_;
     rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr depth_publisher_;
 
-    cv::Mat rosOpencvRgbConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb);
-    cv::Mat rosOpencvDepthConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_depth);
+    cv_bridge::CvImagePtr rosOpencvRgbConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb);
+    cv_bridge::CvImagePtr rosOpencvDepthConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_depth);
 
     sensor_msgs::msg::Image::ConstSharedPtr opencvRosRgbConverter(cv::Mat rgb, const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb);
     sensor_msgs::msg::Image::ConstSharedPtr opencvRosDepthConverter(cv::Mat depth, const sensor_msgs::msg::Image::ConstSharedPtr ros_depth);
 
 public:
     RosOpencv();
+    ~RosOpencv();
 
     void callback(const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb, const sensor_msgs::msg::Image::ConstSharedPtr ros_depth);
 };

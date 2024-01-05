@@ -9,6 +9,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(message_filters REQUIRED)
+find_package(cv_bridge REQUIRED)
 
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -25,6 +26,7 @@ ament_target_dependencies(ros_opencv_converter
     rclcpp
     sensor_msgs
     message_filters
+    cv_bridge
 )
 
 install(DIRECTORY

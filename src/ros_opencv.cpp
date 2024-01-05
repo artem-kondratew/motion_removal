@@ -13,114 +13,37 @@ RosOpencv::RosOpencv() : Node("motion_removal") {
 }
 
 
-cv::Mat proc(cv::Mat img) {
-    cv::circle(img, {320, 240}, 50, {255, 0, 255}, -1);
-    return img;
+RosOpencv::~RosOpencv() {
+    cv::destroyAllWindows();
 }
 
 
-cv::Mat RosOpencv::rosOpencvRgbConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb) {
-    size_t w = ros_rgb->width;
-    size_t h = ros_rgb->height;
-    size_t size = w * h;
-    size_t channels = 3;
-
-    cv::Mat rgb(h, w, CV_8UC3);
-
-    std::memcpy(rgb.data, ros_rgb->data.data(), sizeof(uint8_t) * size * channels);
-
-    return proc(rgb);
+cv_bridge::CvImagePtr RosOpencv::rosOpencvRgbConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb) {
+    return cv_bridge::toCvCopy(ros_rgb);
 }
 
 
-float uint8arr_to_float(const uint8_t* data) {
-    union {
-      float float_variable;
-      uint8_t uint8_array[4];
-    } un;
+cv_bridge::CvImagePtr RosOpencv::rosOpencvDepthConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_depth) {
+    cv_bridge::CvImagePtr depth = cv_bridge::toCvCopy(ros_depth);
 
-    memcpy(un.uint8_array, data, 4);
-    return un.float_variable;
-}
-
-
-cv::Mat RosOpencv::rosOpencvDepthConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_depth) {
-    size_t w = ros_depth->width;
-    size_t h = ros_depth->height;
-    size_t size = w * h;
-    size_t channels = 1;
-
-    cv::Mat depth(h, w, CV_32FC1);
-
-    // std::memcpy(depth.data, reinterpret_cast<const float&>(ros_depth.data.data()), sizeof(float) * size * channels);
-
-    // for (size_t i = 0; i < size; i++) {
-    //     float pix = uint8arr_to_float(ros_depth.data.data() + i * 4);
-    //     depth.data[i] = pix;
-    // }
-
-    // cv::imshow("depth", depth);
-    // cv::waitKey(20);
-
-    // std::cout << ros_depth.encoding << " " << ros_depth.width << " " << ros_depth.height << " " << ros_depth.data.size() << std::endl;
-    // std::cout << (float)depth.data[220000] << " " << (float)ros_depth.data[220000] << std::endl;
+    cv::normalize(depth->image, depth->image, 1, 0, cv::NORM_MINMAX);
 
     return depth;
 }
 
 
-sensor_msgs::msg::Image::ConstSharedPtr RosOpencv::opencvRosRgbConverter(cv::Mat rgb, const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb) {
-    size_t channels = 3;
-    size_t size = rgb.cols * rgb.rows;
-
-    auto msg = sensor_msgs::msg::Image();
-
-    msg.header.frame_id = "camera_link_optical";
-    msg.header.stamp = this->get_clock()->now();
-
-    msg.height = ros_rgb->height;
-    msg.width = ros_rgb->width;
-
-    msg.encoding = ros_rgb->encoding;
-    msg.is_bigendian = ros_rgb->is_bigendian;
-    msg.step = ros_rgb->step;
-
-    msg.data.resize(size * channels);
-    std::memcpy(msg.data.data(), rgb.data, sizeof(uint8_t) * size * channels);
-
-    return std::make_shared<sensor_msgs::msg::Image>(msg);
-}
-
-
-sensor_msgs::msg::Image::ConstSharedPtr RosOpencv::opencvRosDepthConverter(cv::Mat depth, const sensor_msgs::msg::Image::ConstSharedPtr ros_depth) {
-    auto msg = sensor_msgs::msg::Image();
-
-    msg.header.frame_id = "camera_link_optical";
-    msg.header.stamp = this->get_clock()->now();
-
-    // msg.height = ros_rgb->height;
-    // msg.width = ros_rgb->width;
-
-    msg.encoding = ros_depth->encoding;
-    msg.is_bigendian = ros_depth->is_bigendian;
-    msg.step = ros_depth->step;
-
-    // msg.data.resize(size * channels);
-    // std::memcpy(msg.data.data(), rgb.data, sizeof(uint8_t) * size * channels);
-
-    return std::make_shared<sensor_msgs::msg::Image>(msg);
-}
-
-
 void RosOpencv::callback(const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb, const sensor_msgs::msg::Image::ConstSharedPtr ros_depth) {
-    cv::Mat rgb =  rosOpencvRgbConverter(ros_rgb);
-    cv::Mat depth = rosOpencvDepthConverter(ros_depth);
+    cv_bridge::CvImagePtr rgb =  rosOpencvRgbConverter(ros_rgb);
+    cv_bridge::CvImagePtr depth = rosOpencvDepthConverter(ros_depth);
 
-    auto new_ros_rgb = opencvRosRgbConverter(rgb, ros_rgb);
-    auto new_ros_depth = opencvRosDepthConverter(depth, ros_depth);
+    cv::circle(rgb->image, {320, 240}, 50, {255, 0, 255}, -1);
 
-    rgb_publisher_->publish(*new_ros_rgb.get());
-    depth_publisher_->publish(*new_ros_depth.get());
+    cv::imshow("depth", depth->image);
+    cv::waitKey(20);
 
+    rgb_publisher_->publish(*rgb->toImageMsg());
+    depth_publisher_->publish(*depth->toImageMsg());
+#if 0
     RCLCPP_INFO(this->get_logger(), "Messages synced: Callback activated");
+#endif
 }
