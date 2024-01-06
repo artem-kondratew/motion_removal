@@ -14,15 +14,17 @@ find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(ros_opencv_converter
+add_executable(${PROJECT_NAME}
     src/main.cpp
     include/motion_removal/ros_opencv.hpp
     src/ros_opencv.cpp
+    include/motion_removal/motion_removal.hpp
+    src/motion_removal.cpp
 )
 
-target_link_libraries(ros_opencv_converter ${OpenCV_LIBS})
+target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
-ament_target_dependencies(ros_opencv_converter
+ament_target_dependencies(${PROJECT_NAME}
     rclcpp
     sensor_msgs
     message_filters
@@ -35,7 +37,7 @@ install(DIRECTORY
 )
 
 install(TARGETS
-    ros_opencv_converter
+    ${PROJECT_NAME}
     DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -36,10 +36,7 @@ void RosOpencv::callback(const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb, 
     cv_bridge::CvImagePtr rgb =  rosOpencvRgbConverter(ros_rgb);
     cv_bridge::CvImagePtr depth = rosOpencvDepthConverter(ros_depth);
 
-    cv::circle(rgb->image, {320, 240}, 50, {255, 0, 255}, -1);
-
-    cv::imshow("depth", depth->image);
-    cv::waitKey(20);
+    rgb->image = motion_removal::motionRemoval(rgb->image);
 
     rgb_publisher_->publish(*rgb->toImageMsg());
     depth_publisher_->publish(*depth->toImageMsg());

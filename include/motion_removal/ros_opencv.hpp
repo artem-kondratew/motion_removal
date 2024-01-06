@@ -12,9 +12,7 @@
 #include <message_filters/sync_policies/exact_time.h>
 #include <message_filters/synchronizer.h>
 
-#include <opencv4/opencv2/core.hpp>
-#include <opencv4/opencv2/imgproc.hpp>
-#include <opencv4/opencv2/highgui.hpp>
+#include "motion_removal.hpp"
 
 
 class RosOpencv : public rclcpp::Node {
