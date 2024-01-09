@@ -7,14 +7,21 @@ cv::Mat prev_rgb;
 cv::Mat prev_gray;
 
 
-cv::Mat calcOpticalFlow(cv::Mat curr, cv::Mat prev) {
+cv::Mat calcOpticalFlowFurnerback(cv::Mat curr, cv::Mat prev) {
     cv::Mat flow(curr.size(), CV_32FC2);
     cv::calcOpticalFlowFarneback(prev, curr, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
     return flow;
 }
 
 
-void visualizeOpticalFlow(cv::Mat flow) {
+cv::Mat calcOpticalFlowSparceToDense(cv::Mat curr, cv::Mat prev) {
+    cv::Mat flow(curr.size(), CV_32FC2);
+    cv::optflow::calcOpticalFlowSparseToDense(prev, curr, flow);
+    return flow;
+}
+
+
+void visualizeOpticalFlow(cv::Mat flow, std::string win_name) {
     cv::Mat flow_parts[2];
     cv::split(flow, flow_parts);
 
@@ -32,7 +39,7 @@ void visualizeOpticalFlow(cv::Mat flow) {
     hsv.convertTo(hsv8, CV_8U, 255.0);
     cv::cvtColor(hsv8, bgr, cv::COLOR_HSV2BGR);
 
-    imshow("flow", bgr);
+    imshow(win_name, bgr);
 }
 
 
@@ -51,8 +58,8 @@ cv::Mat motionRemoval(cv::Mat curr_tgb) {
     cv::imshow("prev", prev_rgb);
     cv::waitKey(20);
 
-    cv::Mat proc = calcOpticalFlow(curr_gray, prev_gray);
-    visualizeOpticalFlow(proc);
+    cv::Mat proc = calcOpticalFlowSparceToDense(curr_gray, prev_gray);
+    visualizeOpticalFlow(proc, "sparce2dense");
 
     prev_rgb = curr_tgb;
     prev_gray = curr_gray;
