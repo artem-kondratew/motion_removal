@@ -14,7 +14,7 @@ find_package(cv_bridge REQUIRED)
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-add_executable(${PROJECT_NAME}
+add_executable(motion_removal
     src/main.cpp
     include/motion_removal/ros_opencv.hpp
     src/ros_opencv.cpp
@@ -22,9 +22,16 @@ add_executable(${PROJECT_NAME}
     src/motion_removal.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+add_executable(optical_flow_test
+    src/optical_flow_test.cpp
+    include/motion_removal/motion_removal.hpp
+    src/motion_removal.cpp
+)
 
-ament_target_dependencies(${PROJECT_NAME}
+target_link_libraries(motion_removal ${OpenCV_LIBS})
+target_link_libraries(optical_flow_test ${OpenCV_LIBS})
+
+ament_target_dependencies(motion_removal
     rclcpp
     sensor_msgs
     message_filters
@@ -37,7 +44,8 @@ install(DIRECTORY
 )
 
 install(TARGETS
-    ${PROJECT_NAME}
+    motion_removal
+    optical_flow_test
     DESTINATION lib/${PROJECT_NAME}
 )
 
