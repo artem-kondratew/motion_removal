@@ -1,14 +1,17 @@
+#include <chrono>
 #include <fstream>
+#include <iostream>
 #include <string>
 
-#include "../include/motion_removal/motion_removal.hpp"
+#include "../../include/motion_removal/motion_removal.hpp"
 
 
 void test(std::ifstream* rgb_file, std::string path, std::string method) {
+    
+
     cv::Mat prev, prev_gray;
 
     while (true) {
-
         std::string rgb_name;
         double rgb_t;
 
@@ -17,6 +20,8 @@ void test(std::ifstream* rgb_file, std::string path, std::string method) {
         if (rgb_name[0] != 'r') {
             return;
         }
+
+        auto start = std::chrono::system_clock::now();
 
         cv::Mat rgb = cv::imread(path + rgb_name);
 
@@ -46,6 +51,10 @@ void test(std::ifstream* rgb_file, std::string path, std::string method) {
 
         prev = rgb;
         prev_gray = gray;
+
+        auto stop = std::chrono::system_clock::now();
+        auto delta = (size_t)std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+        std::cout << delta << " ms" << std::endl;
     
         cv::imshow("rgb", rgb);
         cv::waitKey(1);

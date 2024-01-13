@@ -3,8 +3,7 @@
 
 namespace motion_removal {
 
-cv::Mat prev_rgb;
-cv::Mat prev_gray;
+cv::Mat prev;
 
 
 cv::Mat calcOpticalFlowFurnerback(cv::Mat curr, cv::Mat prev) {
@@ -43,28 +42,97 @@ void visualizeOpticalFlow(cv::Mat flow, std::string win_name) {
 }
 
 
-cv::Mat motionRemoval(cv::Mat curr_tgb) {
+cv::Mat calcHomography(cv::Mat prev, cv::Mat curr) {
+    cv::imshow("prev", prev);
+    cv::imshow("curr", curr);
 
-    cv::Mat curr_gray;
-    cv::cvtColor(curr_tgb, curr_gray, cv::COLOR_BGR2GRAY);
+    auto detector = cv::SiftFeatureDetector::create();
 
-    if (prev_rgb.cols == 0) {
-        prev_rgb = curr_tgb;
-        prev_gray = curr_gray;
-        return curr_tgb;
+    std::vector<cv::KeyPoint> kp1, kp2;
+    cv::Mat d1, d2;
+
+    cv::Mat mask = cv::Mat::zeros(prev.size(), CV_8UC1);
+    mask.setTo(255);
+    
+    detector->detectAndCompute(prev, mask, kp1, d1);
+    detector->detectAndCompute(curr, mask, kp2, d2);
+
+    auto flann = cv::FlannBasedMatcher();
+
+    std::vector<cv::DMatch> matches;
+
+    flann.match(d1, d2, matches);
+
+    cv::Mat img_with_matches;
+    cv::drawMatches(prev, kp1, curr, kp2, matches, img_with_matches);
+
+    cv::imshow("All Matches", img_with_matches);
+
+    std::vector<cv::Point2f> src;
+    std::vector<cv::Point2f> dst;
+
+    for (const auto match: matches) {
+        src.push_back(kp1[match.queryIdx].pt);
+        dst.push_back(kp2[match.trainIdx].pt);
     }
 
-    cv::imshow("curr", curr_tgb);
-    cv::imshow("prev", prev_rgb);
+    cv::Mat H = cv::findHomography(src, dst, cv::LMEDS);
+
+    return H;
+}
+
+
+cv::Mat motionRemoval(cv::Mat curr_rgb) {
+    auto start_proc = std::chrono::system_clock::now();
+
+    cv::Mat curr;
+    cv::cvtColor(curr_rgb, curr, cv::COLOR_BGR2GRAY);
+
+    if (prev.cols == 0) {
+        prev = curr;
+        return curr_rgb;
+    }
+
+    cv::imshow("curr", curr);
+    cv::imshow("prev", prev);
     cv::waitKey(20);
 
-    cv::Mat proc = calcOpticalFlowSparceToDense(curr_gray, prev_gray);
+/*-----------------------------------------------------------------------------------------------*/
+
+    auto start_flow = std::chrono::system_clock::now();
+
+    cv::Mat proc = calcOpticalFlowSparceToDense(curr, prev);
     visualizeOpticalFlow(proc, "sparce2dense");
 
-    prev_rgb = curr_tgb;
-    prev_gray = curr_gray;
+    auto stop_flow = std::chrono::system_clock::now();
 
-    return curr_tgb;
+/*-----------------------------------------------------------------------------------------------*/
+
+    auto start_homography = std::chrono::system_clock::now();
+
+    cv::Mat H = calcHomography(prev, curr);
+
+    auto stop_homography = std::chrono::system_clock::now();
+#if 0
+    std::cout << H << std::endl;
+#endif
+
+/*-----------------------------------------------------------------------------------------------*/
+
+    prev = curr;
+
+    auto stop_proc = std::chrono::system_clock::now();
+
+    auto flow_duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_flow - start_flow).count();
+    auto homography_duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_homography - start_homography).count();
+    auto proc_duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop_proc - start_proc).count();
+
+    std::cout << "opt flow calc duration: " << flow_duration << " ms" << std::endl;
+    std::cout << "homography calc duration: " << homography_duration << " ms" << std::endl;
+    std::cout << "motion removal duration: " << proc_duration << " ms" << std::endl;
+    std::cout << std::endl;
+
+    return curr_rgb;
 }
 
 }

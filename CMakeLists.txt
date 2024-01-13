@@ -23,13 +23,27 @@ add_executable(motion_removal
 )
 
 add_executable(optical_flow_test
-    src/optical_flow_test.cpp
+    src/tests/optical_flow_test.cpp
+    include/motion_removal/motion_removal.hpp
+    src/motion_removal.cpp
+)
+
+add_executable(homography_test
+    src/tests/homography_test.cpp
+    include/motion_removal/motion_removal.hpp
+    src/motion_removal.cpp
+)
+
+add_executable(homography_test_image
+    src/tests/homography_test_image.cpp
     include/motion_removal/motion_removal.hpp
     src/motion_removal.cpp
 )
 
 target_link_libraries(motion_removal ${OpenCV_LIBS})
 target_link_libraries(optical_flow_test ${OpenCV_LIBS})
+target_link_libraries(homography_test ${OpenCV_LIBS})
+target_link_libraries(homography_test_image ${OpenCV_LIBS})
 
 ament_target_dependencies(motion_removal
     rclcpp
@@ -46,6 +60,8 @@ install(DIRECTORY
 install(TARGETS
     motion_removal
     optical_flow_test
+    homography_test
+    homography_test_image
     DESTINATION lib/${PROJECT_NAME}
 )
 
