@@ -7,8 +7,6 @@
 
 
 void test(std::ifstream* rgb_file, std::string path, std::string method) {
-    
-
     cv::Mat prev, prev_gray;
 
     while (true) {
@@ -35,17 +33,17 @@ void test(std::ifstream* rgb_file, std::string path, std::string method) {
         }
 
         if (method == "all") {
-            cv::Mat flow_furnerback = motion_removal::calcOpticalFlowFurnerback(gray, prev_gray);
-            cv::Mat flow_sparce2dense = motion_removal::calcOpticalFlowSparceToDense(gray, prev_gray);
+            cv::Mat flow_furnerback = motion_removal::calcOpticalFlowFurnerback(prev_gray, gray);
+            cv::Mat flow_sparce2dense = motion_removal::calcOpticalFlowSparceToDense(prev_gray, gray);
             motion_removal::visualizeOpticalFlow(flow_furnerback, "furnerback");
             motion_removal::visualizeOpticalFlow(flow_sparce2dense, "sparce2dense");
         }
         if (method == "furnerback") {
-            cv::Mat flow_furnerback = motion_removal::calcOpticalFlowFurnerback(gray, prev_gray);
+            cv::Mat flow_furnerback = motion_removal::calcOpticalFlowFurnerback(prev_gray, gray);
             motion_removal::visualizeOpticalFlow(flow_furnerback, "furnerback");
         }
         if (method == "sparce2dense") {
-            cv::Mat flow_sparce2dense = motion_removal::calcOpticalFlowSparceToDense(gray, prev_gray);
+            cv::Mat flow_sparce2dense = motion_removal::calcOpticalFlowSparceToDense(prev_gray, gray);
             motion_removal::visualizeOpticalFlow(flow_sparce2dense, "sparce2dense");
         }
 
