@@ -18,11 +18,14 @@
 
 namespace motion_removal {
 
-cv::Mat calcOpticalFlowFurnerback(cv::Mat curr_gray, cv::Mat prev_gray);
-cv::Mat calcOpticalFlowSparceToDense(cv::Mat curr_gray, cv::Mat prev_gray);
-void visualizeOpticalFlow(cv::Mat flow, std::string win_name);
+cv::Mat calcOpticalFlowFurnerback(cv::Mat prev, cv::Mat curr);
+cv::Mat calcOpticalFlowSparceToDense(cv::Mat prev, cv::Mat curr);
+cv::Mat visualizeOpticalFlow(cv::Mat flow, std::string win_name);
 
-cv::Mat calcHomography(cv::Mat prev, cv::Mat curr);
+cv::Mat calcHomography(cv::Mat prev, cv::Mat curr, bool use_good_matches);
+
+cv::Mat sparce(cv::Mat prev, cv::Mat curr);
+cv::Mat warp(cv::Mat prev, cv::Mat curr);
 
 cv::Mat motionRemoval(cv::Mat curr);
 
