@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 project(motion_removal)
 
+set(CMAKE_BUILD_TYPE Release)
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-Wall -Wextra -Wpedantic)
+    add_compile_options(-Wall -Wextra -Wpedantic -O3)
 endif()
 
 find_package(ament_cmake REQUIRED)
@@ -40,10 +42,38 @@ add_executable(homography_test_image
     src/motion_removal.cpp
 )
 
+add_executable(reprojection_test_image
+    src/tests/reprojection_test_image.cpp
+    include/motion_removal/motion_removal.hpp
+    src/motion_removal.cpp
+)
+
+add_executable(reprojection_test
+    src/tests/reprojection_test.cpp
+    include/motion_removal/motion_removal.hpp
+    src/motion_removal.cpp
+)
+
+add_executable(tum_recorder
+    src/tests/tum_recorder.cpp
+    include/motion_removal/motion_removal.hpp
+    src/motion_removal.cpp
+)
+
+add_executable(sparce_test
+    src/tests/sparce_test.cpp
+    include/motion_removal/motion_removal.hpp
+    src/motion_removal.cpp
+)
+
 target_link_libraries(motion_removal ${OpenCV_LIBS})
 target_link_libraries(optical_flow_test ${OpenCV_LIBS})
 target_link_libraries(homography_test ${OpenCV_LIBS})
 target_link_libraries(homography_test_image ${OpenCV_LIBS})
+target_link_libraries(reprojection_test_image ${OpenCV_LIBS})
+target_link_libraries(reprojection_test ${OpenCV_LIBS})
+target_link_libraries(tum_recorder ${OpenCV_LIBS})
+target_link_libraries(sparce_test ${OpenCV_LIBS})
 
 ament_target_dependencies(motion_removal
     rclcpp
@@ -53,7 +83,7 @@ ament_target_dependencies(motion_removal
 )
 
 install(DIRECTORY
-    src include
+    src include config
     DESTINATION share/${PROJECT_NAME}
 )
 
@@ -62,7 +92,12 @@ install(TARGETS
     optical_flow_test
     homography_test
     homography_test_image
+    reprojection_test_image
+    reprojection_test
+    tum_recorder
+    sparce_test
     DESTINATION lib/${PROJECT_NAME}
 )
 
 ament_package()
+
