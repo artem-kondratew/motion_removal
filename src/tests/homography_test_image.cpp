@@ -66,18 +66,34 @@ void dev_homography(cv::Mat gray1, cv::Mat gray2) {
 
     auto stop_detector = std::chrono::system_clock::now();
 
+    cv::Mat points1 = gray1.clone();
+    cv::Mat points2 = gray2.clone();
+    cv::cvtColor(points1, points1, cv::COLOR_GRAY2BGR);
+    cv::cvtColor(points2, points2, cv::COLOR_GRAY2BGR);
+    for (auto i = 0; i < matches.size(); i++) {
+        auto idx1 = matches[i].queryIdx;
+        auto idx2 = matches[i].trainIdx;
+        auto c1 = kp1[idx1].pt;
+        auto c2 = kp2[idx2].pt;
+        cv::circle(points1, c1, 4, {255, 0, 255}, 1);
+        cv::circle(points2, c2, 4, {255, 0, 255}, 1);
+    }
+
+    cv::imshow("points1", points1);
+    cv::imshow("points2", points2);
+
     //-- Draw all matches
     cv::Mat img_matches;
     cv::drawMatches(gray1, kp1, gray2, kp2, matches, img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),
                std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 
     //-- Draw only "good" matches
-    cv::Mat good_img_matches;
+    cv::Mat good_img_matches = gray2.clone();
     cv::drawMatches(gray1, kp1, gray2, kp2, good_matches, good_img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),
                std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
 
-    cv::imshow("All Matches", img_matches);
-    cv::imshow("Good Matches", good_img_matches);
+    // cv::imshow("All Matches", img_matches);
+    // cv::imshow("Good Matches", good_img_matches);
 
     for (size_t i = 0; i < good_matches.size(); i++) {
         std::cout << "-- Good Match [" << i << "] Keypoint 1: " << good_matches[i].queryIdx << "  -- Keypoint 2: " << good_matches[i].trainIdx << std::endl;
@@ -95,9 +111,15 @@ void dev_homography(cv::Mat gray1, cv::Mat gray2) {
     }
 
     cv::Mat H = cv::findHomography(src, dst, cv::LMEDS);
+    cv::Mat warped;
+    cv::warpPerspective(gray2, warped, H, gray2.size());
+
+    cv::imshow("warped", warped);
+    cv::imshow("delta", warped - gray2);
 
     std::cout << H << std::endl;
 
+    cv::waitKey(0);
     cv::waitKey(0);
 }
 
@@ -115,9 +137,9 @@ int main(int argc, char** argv) {
     cv::cvtColor(img1, gray1, cv::COLOR_BGR2GRAY);
     cv::cvtColor(img2, gray2, cv::COLOR_BGR2GRAY);
 
-#if 0
+#if 1
     dev_homography(gray1, gray2);
 #else
-    motion_removal::calcHomography(gray1, gray2);
+    // motion_removal::calcHomography(gray1, gray2, false);
 #endif
 }

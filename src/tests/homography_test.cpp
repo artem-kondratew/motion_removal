@@ -28,16 +28,10 @@ void test(std::ifstream* rgb_file, std::string path) {
             prev_gray = curr_gray;
             continue;
         }
-#if 0
-        cv::Mat flow = motion_removal::calcOpticalFlowSparceToDense(curr_gray, prev_gray);
-        motion_removal::visualizeOpticalFlow(flow, "opt_flow");
 
-        auto cur_kp = motion_removal::calcSift(curr_gray, "curr_sift");
-        auto prev_kp = motion_removal::calcSift(prev_gray, "prev_sift");
+        cv::Mat H = motion_removal::calcHomography(prev_gray, curr_gray, false);
 
-        motion_removal::calcHomographyMatrix(curr_gray, prev_gray);
-#endif
-        std::cout << "EMPTY TEST" << std::endl;
+        std::cout << H << std::endl << std::endl;
 
         prev = rgb;
         prev_gray = curr_gray;
