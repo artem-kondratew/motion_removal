@@ -15,7 +15,7 @@
 #include "motion_removal.hpp"
 
 
-class RosOpencv : public rclcpp::Node {
+class MotionRemoval : public rclcpp::Node {
 private:
     using approximate_policy = message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image>;
 
@@ -31,8 +31,8 @@ private:
     cv_bridge::CvImagePtr rosOpencvDepthConverter(const sensor_msgs::msg::Image::ConstSharedPtr ros_depth);
 
 public:
-    RosOpencv();
-    ~RosOpencv();
+    MotionRemoval();
+    ~MotionRemoval();
 
     void callback(const sensor_msgs::msg::Image::ConstSharedPtr ros_rgb, const sensor_msgs::msg::Image::ConstSharedPtr ros_depth);
 };
